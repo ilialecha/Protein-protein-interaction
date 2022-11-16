@@ -6,7 +6,7 @@ class ResiduesDataLib():
         self.residue_data = {}
         try: fh = open(fname, "r")
         except OSError:
-            print("# ERROR while loading library file (", fname, ")")
+            print("(!) ERROR while loading library file (", fname, ")")
             sys.exit(2)
         for line in fh:
             if line[0] == '#': continue
@@ -19,7 +19,7 @@ class ResiduesDataLib():
         atom_id = resid + ':' + atid
         if atom_id in self.residue_data: return self.residue_data[atom_id]
         else:
-            print("# WARNING: atom not found in library (", atom_id, ')')
+            print("(!) WARNING: atom not found in library (", atom_id, ')')
             return None
 
 class Residue():
@@ -44,7 +44,7 @@ class VdwParamset():
         self.at_types = {}
         try: fh = open(file_name, "r")
         except OSError:
-            print ("# ERROR while loading parameter file (", file_name, ")")
+            print ("(!) ERROR while loading parameter file (", file_name, ")")
             sys.exit(2)
         for line in fh:
             if line[0] == '#': continue
@@ -79,7 +79,7 @@ def add_atom_parameters(st, res_lib, ff_params):
         resname = at.get_parent().get_resname()
         params = res_lib.get_params(resname, at.id)
         if not params:
-            print("# WARNING: residue/atom pair not in library ("+atom_id(at) + ')')
+            print("(!) WARNING: residue/atom pair not in library ("+atom_id(at) + ')')
             at.xtra['atom_type'] = at.element
             at.xtra['charge'] = 0
         else:

@@ -34,7 +34,7 @@ def main(argv):
     # Necessary for adding required parameters to atoms.
     NACCESS_BINARY =  INPUTDIR+"soft/NACCESS/naccess"
 
-    print("# Adding Van der Waals parameters to PDB Structure.")
+    print("(#) Adding Van der Waals parameters to PDB Structure.")
     time.sleep(1)
     
     # loading residue library from files/aaLib.lib
@@ -69,7 +69,7 @@ def main(argv):
     os.remove('tmp.pdb')
 
 
-    print("# Identifying interaction surface residues.")
+    print("(#) Identifying interaction surface residues.")
     time.sleep(1)
     
     chain_A         = st[0]["A"] # Obtaining chain A from model 0 --> ACE2
@@ -88,27 +88,62 @@ def main(argv):
      the number of comparations is narrowed down to Theta(k*i) where k is a residue and i the
      number of neighbors of k.
     '''
-    for k,v in surfaceRes.items(): surface_chain_A.append(int(k));[surface_chain_E.append(res) for res in v]
-
-    #AG_A = ELECT_A + VDW_A + SOLV_AE + SOLV_A
-    #AG_E = ELECT_E + VDW_E + SOLV_AE + SOLV_E
-
-    #Computing AG_elect^A-B
+    for k,v in surfaceRes.items():
+        surface_chain_A.append(int(k));[surface_chain_E.append(res) for res in v]
 
 
-    '''print("# Computing AG's")
+    print("(#) Computing Electrostatic and Van der Waals interaction energies.")
+    int_elect       = 0.
+    int_elect_ala   = 0.
+    int_vdw         = 0.
+    int_vdw_ala     = 0.
+
+    # For all surface residues in chain A we compute elec. and vdw energies
+    # against all atoms in the structure. 
+    for res in surface_chain_E:
+        tmp = Energies.calc_int_energies(st, chain_E[res])
+        
+        int_elect       += tmp[0]
+        int_elect_ala   += tmp[1]
+        int_vdw         += tmp[2]
+        int_vdw_ala     += tmp[3]
+        '''
+        With A:
+        Electrostatic 3.8635301563050035
+        Electrostatic Ala 0.49917947784982397
+        VDW -65.66726444244397
+        VDW Ala -27.111214907795507
+        Solv AE -517.432398000001
+        With E:
+        Electrostatic 2.6294591361464317
+        Electrostatic Ala -2.9360018548016664
+        VDW -83.66039537898148
+        VDW Ala -40.36380410486438
+        Solv AE -517.432398000001
+        '''
+    
+    print(f"\tElectrostatic {int_elect}")
+    print(f"\tElectrostatic Ala {int_elect_ala}")
+    print(f"\tVDW {int_vdw}")
+    print(f"\tVDW Ala {int_vdw_ala}")
+
+    print("(#) Computing solvation energies.")
+    solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
+    print(f"\tSolv AE {solv_AE}")
+
+    '''print("(#) Computing AG's")
     elect_A = 0.
     elect_E = 0.
     vdw_A = 0.
     vdw_E = 0.
 
-    print("# Computing elect. and VDW of the first chain.")
+    print("(#) Computing elect. and VDW of the first chain.")
     for at in chain_A_at[:-1]:
         for at2 in chain_A_at[1:]:
             elect_A += Energies.elec_int(at,at2,DISTANCE)
             vdw_A   += Energies.vdw_int(at,at2,DISTANCE)
 
-    print("# Computing elect. and VDW of the second chain.")
+    print("(#) Computing elect. and VDW of the second chain.")
     for at in chain_E_at[:-1]:
         for at2 in chain_E_at[1:]:
             elect_E += Energies.elec_int(at,at2,DISTANCE)

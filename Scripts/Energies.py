@@ -37,7 +37,8 @@ class Energies():
         return elec, elec_ala, vdw, vdw_ala
 
     def calc_int_energies2(st, res_A, res_E):
-        '''Returns interaction energies (residue against other chains)
+        '''
+            Returns interaction energies (residue against other chains)
             for all atoms and for Ala atoms
         '''
         elec = 0.
@@ -55,7 +56,7 @@ class Energies():
                 vdw += e
                 if at1.id in ala_atoms:vdw_ala += e #GLY are included implicitly
                         
-        return elec, elec_ala, vdw, vdw_ala
+        return [elec, elec_ala, vdw, vdw_ala]
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
