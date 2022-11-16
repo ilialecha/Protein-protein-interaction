@@ -110,15 +110,12 @@ def main(argv):
         '''
         With A:
         Electrostatic 3.8635301563050035
-        Electrostatic Ala 0.49917947784982397
         VDW -65.66726444244397
-        VDW Ala -27.111214907795507
         Solv AE -517.432398000001
+        
         With E:
         Electrostatic 2.6294591361464317
-        Electrostatic Ala -2.9360018548016664
         VDW -83.66039537898148
-        VDW Ala -40.36380410486438
         Solv AE -517.432398000001
         '''
     
