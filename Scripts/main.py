@@ -93,7 +93,10 @@ def main(argv):
     #AG_A = ELECT_A + VDW_A + SOLV_AE + SOLV_A
     #AG_E = ELECT_E + VDW_E + SOLV_AE + SOLV_E
 
-    print("# Computing AG's")
+    #Computing AG_elect^A-B
+
+
+    '''print("# Computing AG's")
     elect_A = 0.
     elect_E = 0.
     vdw_A = 0.
@@ -120,7 +123,7 @@ def main(argv):
     AG_E = elect_E + vdw_E + solv_AE - solv_E
 
     print(f"AG_A = {AG_A}")
-    print(f"AG_E = {AG_E}")
+    print(f"AG_E = {AG_E}")'''
 
 
 if __name__ == "__main__":

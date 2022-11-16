@@ -1,4 +1,5 @@
 import math
+from Bio.PDB import Selection
 
 #Possible Atom names that correspond to Ala atoms"
 ala_atoms = {'N', 'H', 'CA', 'HA', 'C', 'O', 'CB', 'HB', 'HB1', 'HB2', 'HB3', 'HA1', 'HA2', 'HA3'}
@@ -32,6 +33,27 @@ class Energies():
                     e = Energies.vdw_int(at1, at2, r)
                     vdw += e
                     if at1.id in ala_atoms:vdw_ala += e #GLY are included implicitly
+                        
+        return elec, elec_ala, vdw, vdw_ala
+
+    def calc_int_energies2(st, res_A, res_E):
+        '''Returns interaction energies (residue against other chains)
+            for all atoms and for Ala atoms
+        '''
+        elec = 0.
+        elec_ala = 0.
+        vdw = 0.
+        vdw_ala = 0.
+        for at1 in Selection.unfold_entities(res_A,'A'):
+            for at2 in Selection.unfold_entities(res_E,'A'):
+            # skip same chain atom pairs
+                r = at1 - at2
+                e = Energies.elec_int(at1, at2, r)
+                elec += e
+                if at1.id in ala_atoms:elec_ala += e #GLY are included implicitly
+                e = Energies.vdw_int(at1, at2, r)
+                vdw += e
+                if at1.id in ala_atoms:vdw_ala += e #GLY are included implicitly
                         
         return elec, elec_ala, vdw, vdw_ala
 
