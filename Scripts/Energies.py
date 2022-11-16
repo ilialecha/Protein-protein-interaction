@@ -36,7 +36,7 @@ class Energies():
                         
         return elec, elec_ala, vdw, vdw_ala
 
-    def calc_int_energies2(st, res_A, res_E):
+    def calc_int_energies2(st, chain_A, chain_E, surf_A, surf_E):
         '''
             Returns interaction energies (residue against other chains)
             for all atoms and for Ala atoms
@@ -45,17 +45,18 @@ class Energies():
         elec_ala = 0.
         vdw = 0.
         vdw_ala = 0.
-        for at1 in Selection.unfold_entities(res_A,'A'):
-            for at2 in Selection.unfold_entities(res_E,'A'):
-            # skip same chain atom pairs
-                r = at1 - at2
-                e = Energies.elec_int(at1, at2, r)
-                elec += e
-                if at1.id in ala_atoms:elec_ala += e #GLY are included implicitly
-                e = Energies.vdw_int(at1, at2, r)
-                vdw += e
-                if at1.id in ala_atoms:vdw_ala += e #GLY are included implicitly
-                        
+
+        for res_A in surf_A:
+            for res_E in surf_E:
+                for at_A in Selection.unfold_entities(chain_A[res_A],'A'):
+                    for at_E in Selection.unfold_entities(chain_E[res_E],'A'):
+                        r = at_A - at_E
+                        e = Energies.elec_int(at_A, at_E, r)
+                        elec += e
+                        if at_A.id in ala_atoms:elec_ala += e #GLY are included implicitly
+                        e = Energies.vdw_int(at_A, at_E, r)
+                        vdw += e
+                        if at_A.id in ala_atoms:vdw_ala += e #GLY are included implicitly               
         return [elec, elec_ala, vdw, vdw_ala]
 
     def MH_diel(r):

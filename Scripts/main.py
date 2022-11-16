@@ -93,69 +93,36 @@ def main(argv):
 
 
     print("(#) Computing Electrostatic and Van der Waals interaction energies.")
-    int_elect       = 0.
-    int_elect_ala   = 0.
-    int_vdw         = 0.
-    int_vdw_ala     = 0.
+    int_elect_A       = 0.
+    int_elect_ala_A   = 0.
+    int_vdw_A         = 0.
+    int_vdw_ala_A     = 0.
 
     # For all surface residues in chain A we compute elec. and vdw energies
     # against all atoms in the structure. 
-    for res in surface_chain_E:
-        tmp = Energies.calc_int_energies(st, chain_E[res])
+
+    for res in chain_A:
+        tmp = Energies.calc_int_energies(st, res)
         
-        int_elect       += tmp[0]
-        int_elect_ala   += tmp[1]
-        int_vdw         += tmp[2]
-        int_vdw_ala     += tmp[3]
-        '''
-        With A:
-        Electrostatic 3.8635301563050035
-        VDW -65.66726444244397
-        Solv AE -517.432398000001
-        
-        With E:
-        Electrostatic 2.6294591361464317
-        VDW -83.66039537898148
-        Solv AE -517.432398000001
-        '''
+        int_elect_A       += tmp[0]
+        int_elect_ala_A   += tmp[1]
+        int_vdw_A         += tmp[2]
+        int_vdw_ala_A     += tmp[3]
+
     
-    print(f"\tElectrostatic {int_elect}")
-    print(f"\tElectrostatic Ala {int_elect_ala}")
-    print(f"\tVDW {int_vdw}")
-    print(f"\tVDW Ala {int_vdw_ala}")
+    print(f"\tElectrostatic {int_elect_A}")
+    print(f"\tElectrostatic Ala {int_elect_ala_A}")
+    print(f"\tVDW {int_vdw_A}")
+    print(f"\tVDW Ala {int_vdw_ala_A}")
+
 
     print("(#) Computing solvation energies.")
     solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
-    print(f"\tSolv AE {solv_AE}")
-
-    '''print("(#) Computing AG's")
-    elect_A = 0.
-    elect_E = 0.
-    vdw_A = 0.
-    vdw_E = 0.
-
-    print("(#) Computing elect. and VDW of the first chain.")
-    for at in chain_A_at[:-1]:
-        for at2 in chain_A_at[1:]:
-            elect_A += Energies.elec_int(at,at2,DISTANCE)
-            vdw_A   += Energies.vdw_int(at,at2,DISTANCE)
-
-    print("(#) Computing elect. and VDW of the second chain.")
-    for at in chain_E_at[:-1]:
-        for at2 in chain_E_at[1:]:
-            elect_E += Energies.elec_int(at,at2,DISTANCE)
-            vdw_E   += Energies.vdw_int(at,at2,DISTANCE)
-            
-    print("# Computing solvations.")
     solv_A  = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(chain_A, 'R')])
     solv_E  = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(chain_E, 'R')])
-    solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
-
-    AG_A = elect_A + vdw_A + solv_AE - solv_A
-    AG_E = elect_E + vdw_E + solv_AE - solv_E
-
-    print(f"AG_A = {AG_A}")
-    print(f"AG_E = {AG_E}")'''
+    print(f"\tSolv AE {solv_AE}")
+    print(f"\tSolv A  {solv_A} ")
+    print(f"\tSolv E  {solv_E} ")
 
 
 if __name__ == "__main__":
