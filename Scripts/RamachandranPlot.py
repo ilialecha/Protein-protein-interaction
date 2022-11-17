@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------
+# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Contributions : https://pypi.org/project/RamachanDraw/
+# Created Date  : 04/11/2022
+# version       = '1.0'
+# --------------------------------------------------------------------------- 
 import math
 from Bio.PDB import *
 from RamachanDraw import fetch, phi_psi, plot
@@ -52,7 +58,6 @@ try:
     output_file.write("ID\tPHI\tPSI\TYPE\n")
     for model in structure :
         for chain in model:
-            #print ("Chain %s" % str(chain.id))
             polypeptides = CaPPBuilder().build_peptides(chain)
             for poly_index, poly in enumerate(polypeptides) :
                 phi_psi = poly.get_phi_psi_list()

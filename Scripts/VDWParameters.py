@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------
+# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Contributions : Jose Luis Gelpi
+# Created Date  : 04/11/2022
+# version       = '1.0'
+# --------------------------------------------------------------------------- 
 import sys
 from Bio.PDB.PDBIO import Select
 

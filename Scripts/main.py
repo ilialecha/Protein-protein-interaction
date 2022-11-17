@@ -1,11 +1,18 @@
-import  time
+#----------------------------------------------------------------------------
+# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Contributions : Jose Luis Gelpi
+# Created Date  : 04/11/2022
+# version       = '1.0'
+# --------------------------------------------------------------------------- 
 import  os
+import  getopt
 from    Energies            import *
 from    VDWParameters       import *
 from    SurfaceInteractions import *
 from    Bio.PDB.PDBParser   import PDBParser
 from    Bio.PDB.NACCESS     import NACCESS_atomic
 from    Bio.PDB.PDBIO       import PDBIO
+from    tqdm                import tqdm
 
 def man():
     print ('main.py -i <inputdir> -d <distance>')
@@ -13,29 +20,34 @@ def man():
     print ('aaLib.lib:\tAtoms library')
     print ('Pdb_file:\tContaining a model with two chains.')
     print ('vdwprm:\t\tParameters for Van der Waals forces.')
-    
 
 def main(argv):
     # Setting up of the required parameters. 
     INPUTDIR   = ''
     DISTANCE    = 0.0
     
-    try:  opts, args = getopt.getopt(argv,"hi:d:",["idir=","dist="])
-    
-    except getopt.GetoptError: man() ; sys.exit(2)
+    try:
+        opts, args = getopt.getopt(argv,"hi:d:",["idir=","dist="])
+    except getopt.GetoptError:
+        man() ; sys.exit(2)
     
     for opt, arg in opts:
-        if opt == '-h': man() ;sys.exit()
-        elif opt in ("-i", "--idir"): INPUTDIR = arg
-        elif opt in ("-d", "--dist"): DISTANCE = float(arg)
+        if opt == '-h':
+            man() ;sys.exit()
+        elif opt in ("-i", "--idir"):
+            INPUTDIR = arg
+        elif opt in ("-d", "--dist"):
+            DISTANCE = float(arg)
 
-    if 0.0==DISTANCE: man() ; sys.exit(2)
-    if "/" != INPUTDIR[-1]: INPUTDIR+="/"
+    if 0.0==DISTANCE:
+        man() ; sys.exit(2)
+    if "/" != INPUTDIR[-1]:
+        INPUTDIR+="/"
+
     # Necessary for adding required parameters to atoms.
     NACCESS_BINARY =  INPUTDIR+"soft/NACCESS/naccess"
 
     print("(#) Adding Van der Waals parameters to PDB Structure.")
-    time.sleep(1)
     
     # loading residue library from files/aaLib.lib
     res_lib = ResiduesDataLib(INPUTDIR+'aaLib.lib')
@@ -70,12 +82,9 @@ def main(argv):
 
 
     print("(#) Identifying interaction surface residues.")
-    time.sleep(1)
     
     chain_A         = st[0]["A"] # Obtaining chain A from model 0 --> ACE2
     chain_E         = st[0]["E"] # Obtaining chain E from model 0 --> Spike
-    chain_A_at      = Selection.unfold_entities(chain_A,'A')
-    chain_E_at      = Selection.unfold_entities(chain_E,'A')
     surfaceInt      = SurfaceInteractions(chain_A,chain_E,DISTANCE)
     surfaceRes      = surfaceInt.get_neighbors()
     surfaceAtm      = surfaceInt.get_atoms_in_contact(surfaceRes)
@@ -94,36 +103,78 @@ def main(argv):
 
     print("(#) Computing Electrostatic and Van der Waals interaction energies.")
     int_elect_A       = 0.
-    int_elect_ala_A   = 0.
     int_vdw_A         = 0.
-    int_vdw_ala_A     = 0.
 
     # For all surface residues in chain A we compute elec. and vdw energies
     # against all atoms in the structure. 
 
-    for res in chain_A:
+    f = open("energies.tsv", "w")
+    print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total",file=f)
+
+    for res in tqdm(chain_A):
         tmp = Energies.calc_int_energies(st, res)
-        
         int_elect_A       += tmp[0]
-        int_elect_ala_A   += tmp[1]
-        int_vdw_A         += tmp[2]
-        int_vdw_ala_A     += tmp[3]
+        int_vdw_A         += tmp[1]
 
-    
+    '''
+    Results before Ala-Scanning.
+    Electrostatic -2.3990267908564156
+    VDW -86.33619619342456
+    Solv AE -517.432398000001
+    '''
+    '''
+    Results after Ala-Scanning.
+    Electrostatic -3.1085559070555813
+    VDW -80.4134868382032
+    Solvation -517.1682650000009
+    '''
+
     print(f"\tElectrostatic {int_elect_A}")
-    print(f"\tElectrostatic Ala {int_elect_ala_A}")
     print(f"\tVDW {int_vdw_A}")
-    print(f"\tVDW Ala {int_vdw_ala_A}")
-
 
     print("(#) Computing solvation energies.")
-    solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
-    solv_A  = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(chain_A, 'R')])
-    solv_E  = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(chain_E, 'R')])
-    print(f"\tSolv AE {solv_AE}")
-    print(f"\tSolv A  {solv_A} ")
-    print(f"\tSolv E  {solv_E} ")
 
+    # Solv_AE = Solv_A + Solv_E so we can omit some computation.
+    solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
+    
+    print(f"\tSolv AE {solv_AE}")
+
+    print(f"(#) Writting into energies.tsv")
+    print("Normal;","All",";",int_elect_A,";",int_vdw_A,";",solv_AE,";", int_vdw_A+int_elect_A+solv_AE,file=f)
+
+    print("(#) Running Ala-Scanning:")
+    print(f"(#) For each execution, one of these residues({' '.join(surface_chain_A)}) shall be treated as an Alanine.")
+
+    for surf_A in surface_chain_A:
+        
+        int_elect_ala_A   = 0.
+        int_vdw_ala_A     = 0.
+        int_solv_ala      = 0.
+        solv_AE_ala       = 0.
+        for res in tqdm(chain_A):
+            if res.get_id()[1] == surf_A:
+                # Found residue to be treated as an Alanine.
+                tmp = Energies.calc_int_energies_ala(st, res)
+                int_elect_ala_A   += tmp[0]
+                int_vdw_ala_A     += tmp[1]
+            else:
+                tmp = Energies.calc_int_energies(st, res)
+                int_elect_ala_A   += tmp[0]
+                int_vdw_ala_A     += tmp[1]
+
+        for res in Selection.unfold_entities(st[0],"R"):
+            if res.get_id()[1] == surf_A:
+                # Found residue to be treated as an Alanine.
+                solv_AE_ala += Energies.calc_solvation_ala(res)
+            else:
+                solv_AE_ala += Energies.calc_solvation(res)
+
+        print(f"\tModified res {surface_chain_A}")
+        print(f"\tElectrostatic {int_elect_ala_A}")
+        print(f"\tVDW {int_vdw_ala_A}")
+        print(f"\tSolvation {solv_AE_ala}")
+        print(f"(#) Writting into energies.tsv")
+        print("AlaScan;",chain_A[surf_A].get_resname(),int_elect_ala_A,";",int_vdw_ala_A,";",solv_AE_ala,";", int_vdw_ala_A+int_elect_ala_A+solv_AE_ala,file=f)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
