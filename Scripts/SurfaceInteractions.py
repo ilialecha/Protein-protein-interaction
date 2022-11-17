@@ -1,12 +1,11 @@
 #----------------------------------------------------------------------------
-# Created By  : Ilia Lecha, Marçal Vázquez and Marc Romera.
-# Created Date: 04/11/2022
-# version ='1.0'
-#https://github.com/jlgelpi/BioPhysics/blob/master/Examples/ex_cmd_line.py
+# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Contributions : Jose Luis Gelpi
+# Created Date  : 04/11/2022
+# version       = '1.0'
 # --------------------------------------------------------------------------- 
-from Bio.PDB import NeighborSearch, PDBParser, Selection
+from Bio.PDB import NeighborSearch, Selection
 from os import system
-import sys, getopt
 
 class SurfaceInteractions():
     def __init__(self,chain_A,chain_E,distance):

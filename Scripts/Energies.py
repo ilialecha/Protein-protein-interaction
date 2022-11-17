@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------
+# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Contributions : Jose Luis Gelpi
+# Created Date  : 04/11/2022
+# version       = '1.0'
+# --------------------------------------------------------------------------- 
 import math
 from Bio.PDB import Selection
 
@@ -18,46 +24,35 @@ class Energies():
             for all atoms and for Ala atoms
         '''
         elec = 0.
-        elec_ala = 0.
         vdw = 0.
+        for at1 in res.get_atoms():
+            for at2 in st.get_atoms():
+            # skip same chain atom pairs
+                if at2.get_parent().get_parent() != res.get_parent():
+                    r = at1 - at2
+                    elec += Energies.elec_int(at1, at2, r)
+                    vdw += Energies.vdw_int(at1, at2, r)          
+        return elec, vdw
+
+
+    def calc_int_energies_ala(st, res):
+        '''Returns interaction energies (residue against other chains)
+            for all atoms and for Ala atoms
+        '''
+        elec_ala = 0.
         vdw_ala = 0.
+        solv_ala = 0.
 
         for at1 in res.get_atoms():
             for at2 in st.get_atoms():
             # skip same chain atom pairs
                 if at2.get_parent().get_parent() != res.get_parent():
                     r = at1 - at2
-                    e = Energies.elec_int(at1, at2, r)
-                    elec += e
-                    if at1.id in ala_atoms:elec_ala += e #GLY are included implicitly
-                    e = Energies.vdw_int(at1, at2, r)
-                    vdw += e
-                    if at1.id in ala_atoms:vdw_ala += e #GLY are included implicitly
+                    if at1.id in ala_atoms:
+                        elec_ala += Energies.elec_int(at1, at2, r) 
+                        vdw_ala  += Energies.vdw_int(at1, at2, r) 
                         
-        return elec, elec_ala, vdw, vdw_ala
-
-    def calc_int_energies2(st, chain_A, chain_E, surf_A, surf_E):
-        '''
-            Returns interaction energies (residue against other chains)
-            for all atoms and for Ala atoms
-        '''
-        elec = 0.
-        elec_ala = 0.
-        vdw = 0.
-        vdw_ala = 0.
-
-        for res_A in surf_A:
-            for res_E in surf_E:
-                for at_A in Selection.unfold_entities(chain_A[res_A],'A'):
-                    for at_E in Selection.unfold_entities(chain_E[res_E],'A'):
-                        r = at_A - at_E
-                        e = Energies.elec_int(at_A, at_E, r)
-                        elec += e
-                        if at_A.id in ala_atoms:elec_ala += e #GLY are included implicitly
-                        e = Energies.vdw_int(at_A, at_E, r)
-                        vdw += e
-                        if at_A.id in ala_atoms:vdw_ala += e #GLY are included implicitly               
-        return [elec, elec_ala, vdw, vdw_ala]
+        return elec_ala, vdw_ala
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
@@ -85,5 +80,22 @@ class Energies():
                 #if at.id in ala_atoms:
                 #    solv_ala += s
         return solv
-
-
+    
+    def calc_solvation(res):
+        '''Solvation energy based on ASA'''
+        '''Return solv.Energy of a given residue, have to execute this for all residues.'''
+        solv = 0.
+        for at in res.get_atoms():
+            if 'EXP_NACCESS' not in at.xtra: continue
+            else: solv += float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf
+        return solv
+    
+    def calc_solvation_ala(res):
+        '''Solvation energy based on ASA'''
+        '''Return solv.Energy of a given residue, have to execute this for all residues.'''
+        solv_ala = 0.
+        for at in res.get_atoms():
+            if 'EXP_NACCESS' not in at.xtra: continue
+            else:
+                if at.id in ala_atoms: solv_ala += float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf     
+        return solv_ala
