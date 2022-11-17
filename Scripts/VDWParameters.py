@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
-# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
-# Contributions : Jose Luis Gelpi
-# Created Date  : 04/11/2022
+# Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
+# Contributions : Jose Luis Gelpi, Irene Acero, Alberto Meseguer
+# Date          : 04/11/2022
 # version       = '1.0'
 # --------------------------------------------------------------------------- 
 import sys

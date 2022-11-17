@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------
+# Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
+# Contributions : Jose Luis Gelpi, Irene Acero and Alberto Meseguer
+# Date          : 04/11/2022
+# version       = '1.0'
+# --------------------------------------------------------------------------- 
 import biobb_structure_checking
 import biobb_structure_checking.constants as cts
 from biobb_structure_checking.structure_checking import StructureChecking

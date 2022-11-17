@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
-# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
-# Contributions : Jose Luis Gelpi
-# Created Date  : 04/11/2022
+# Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
+# Contributions : Jose Luis Gelpi, Irene Acero, Alberto Meseguer
+# Date          : 04/11/2022
 # version       = '1.0'
 # --------------------------------------------------------------------------- 
 from Bio.PDB import NeighborSearch, Selection
@@ -24,8 +24,10 @@ class SurfaceInteractions():
             for atom in self.chain_A[k].get_atoms():
                 for atom_E in atoms_E_list:
                     if (atom - atom_E) <= self.distance:
-                        if not atom.get_name() in atoms_in_contact: atoms_in_contact[atom.get_name()] = [atom_E.get_name(),atom - atom_E]
-                        else: atoms_in_contact[atom.get_name()] += [atom_E.get_name(),atom - atom_E]
+                        if not atom.get_name() in atoms_in_contact:
+                            atoms_in_contact[atom.get_name()] = [atom_E.get_name(),atom - atom_E]
+                        else:
+                            atoms_in_contact[atom.get_name()] += [atom_E.get_name(),atom - atom_E]
         return atoms_in_contact
 
     def get_neighbors(self):
@@ -41,5 +43,6 @@ class SurfaceInteractions():
         for res in chain_A_residues:
             for atom in res.get_atoms():
                 residue_list = Selection.unfold_entities(neighbor_search.search(atom.get_coord(), self.distance), 'R') # R for residues
-                if len(residue_list)>0: surface_neighbors[res.get_id()[1]] = set(res.get_id()[1] for res in residue_list)
+                if len(residue_list)>0:
+                    surface_neighbors[res.get_id()[1]] = set(res.get_id()[1] for res in residue_list)
         return surface_neighbors  

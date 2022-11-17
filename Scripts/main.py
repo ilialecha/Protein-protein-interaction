@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
-# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
-# Contributions : Jose Luis Gelpi
-# Created Date  : 04/11/2022
+# Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
+# Contributions : Jose Luis Gelpi, Irene Acero, Alberto Meseguer
+# Date          : 04/11/2022
 # version       = '1.0'
 # --------------------------------------------------------------------------- 
 import  os
@@ -81,53 +81,39 @@ def main(argv):
     os.remove('tmp.pdb')
 
 
+    f = open(INPUTDIR+"energies.tsv", "w")
+    print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total",file=f)
+
     print("(#) Identifying interaction surface residues.")
     
     chain_A         = st[0]["A"] # Obtaining chain A from model 0 --> ACE2
     chain_E         = st[0]["E"] # Obtaining chain E from model 0 --> Spike
     surfaceInt      = SurfaceInteractions(chain_A,chain_E,DISTANCE)
     surfaceRes      = surfaceInt.get_neighbors()
-    surfaceAtm      = surfaceInt.get_atoms_in_contact(surfaceRes)
-    surface_chain_A = []
-    surface_chain_E = []
+    surface_chain_A = set()
+    surface_chain_E = set()
 
-    '''
-     This structure correlates the hypothetical interaction between key and item residues.
-     Afterwards, instead of requiring Theta(n*m) where n and m are the lengths of the chains,
-     the number of comparations is narrowed down to Theta(k*i) where k is a residue and i the
-     number of neighbors of k.
-    '''
     for k,v in surfaceRes.items():
-        surface_chain_A.append(int(k));[surface_chain_E.append(res) for res in v]
-
+        surface_chain_A.add(int(k))
+        [surface_chain_E.add(res) for res in v]
 
     print("(#) Computing Electrostatic and Van der Waals interaction energies.")
-    int_elect_A       = 0.
-    int_vdw_A         = 0.
+    int_elect_A = 0.
+    int_vdw_A   = 0.
+    solv_A      = 0.
 
     # For all surface residues in chain A we compute elec. and vdw energies
     # against all atoms in the structure. 
 
-    f = open("energies.tsv", "w")
-    print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total",file=f)
+    AAG = set()
 
     for res in tqdm(chain_A):
         tmp = Energies.calc_int_energies(st, res)
         int_elect_A       += tmp[0]
         int_vdw_A         += tmp[1]
-
-    '''
-    Results before Ala-Scanning.
-    Electrostatic -2.3990267908564156
-    VDW -86.33619619342456
-    Solv AE -517.432398000001
-    '''
-    '''
-    Results after Ala-Scanning.
-    Electrostatic -3.1085559070555813
-    VDW -80.4134868382032
-    Solvation -517.1682650000009
-    '''
+        solv_A            += tmp[2]
+        # Adding (elec,vdw) to AAG =  {(elec,vdw),(elec,vdw),(elec,vdw),...}
+        AAG.add(tmp)
 
     print(f"\tElectrostatic {int_elect_A}")
     print(f"\tVDW {int_vdw_A}")
@@ -136,8 +122,10 @@ def main(argv):
 
     # Solv_AE = Solv_A + Solv_E so we can omit some computation.
     solv_AE = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0], 'R')])
+    solv_E = sum([Energies.calc_solvation(res) for res in Selection.unfold_entities(st[0]['E'], 'R')])
     
     print(f"\tSolv AE {solv_AE}")
+    print(f"{solv_A + solv_E}")
 
     print(f"(#) Writting into energies.tsv")
     print("Normal;","All",";",int_elect_A,";",int_vdw_A,";",solv_AE,";", int_vdw_A+int_elect_A+solv_AE,file=f)
@@ -169,12 +157,26 @@ def main(argv):
             else:
                 solv_AE_ala += Energies.calc_solvation(res)
 
-        print(f"\tModified res {surface_chain_A}")
+        print(f"\tModified res {chain_A[surf_A].get_resname()}")
         print(f"\tElectrostatic {int_elect_ala_A}")
         print(f"\tVDW {int_vdw_ala_A}")
         print(f"\tSolvation {solv_AE_ala}")
         print(f"(#) Writting into energies.tsv")
         print("AlaScan;",chain_A[surf_A].get_resname(),int_elect_ala_A,";",int_vdw_ala_A,";",solv_AE_ala,";", int_vdw_ala_A+int_elect_ala_A+solv_AE_ala,file=f)
+    f.close()
+
+    '''
+    Results before Ala-Scanning.
+    Electrostatic -2.3990267908564156
+    VDW -86.33619619342456
+    Solv AE -517.432398000001
+    '''
+    '''
+    Results after Ala-Scanning.
+    Electrostatic -3.1085559070555813
+    VDW -80.4134868382032
+    Solvation -517.1682650000009
+    '''
 
 if __name__ == "__main__":
    main(sys.argv[1:])

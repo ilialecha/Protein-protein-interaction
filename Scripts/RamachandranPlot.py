@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
-# Created By    : Marçal Vázquez, Marc Romera and Ilia Lecha.
+# Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
 # Contributions : https://pypi.org/project/RamachanDraw/
-# Created Date  : 04/11/2022
+# Date          : 04/11/2022
 # version       = '1.0'
 # --------------------------------------------------------------------------- 
 import math
@@ -55,7 +55,7 @@ try:
 
     print ("About to save angles to file...")
     output_file = open("%s_biopython.tsv" % pdb_code,"w") # 
-    output_file.write("ID\tPHI\tPSI\TYPE\n")
+    output_file.write("PDB\tCHAIN_ID\tRES\tPHI\tPSI\tTYPE\n")
     for model in structure :
         for chain in model:
             polypeptides = CaPPBuilder().build_peptides(chain)
