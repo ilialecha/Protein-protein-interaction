@@ -143,7 +143,7 @@ def main(argv):
     print("Normal;","All",";",int_elect_A,";",int_vdw_A,";",solv_AE,";", int_vdw_A+int_elect_A+solv_AE,file=f)
 
     print("(#) Running Ala-Scanning:")
-    print(f"(#) For each execution, one of these residues({' '.join(surface_chain_A)}) shall be treated as an Alanine.")
+    print(f"(#) For each execution, one of these residues({surface_chain_A}) shall be treated as an Alanine.")
 
     for surf_A in surface_chain_A:
         

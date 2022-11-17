@@ -65,9 +65,9 @@ try:
                     phi, psi = phi_psi[res_index]
                     if phi and psi :
                         #Don't write output when missing an angle
-                        output_file.write("%s:Chain%s:%s%i\t%f\t%f\t%s\n" \
+                        output_file.write("%s\t%s\t%s\t%f\t%f\t%s\n" \
                             % (pdb_code, str(chain.id), residue.resname,
-                            residue.id[1], degrees(phi), degrees(psi),
+                            degrees(phi), degrees(psi),
                             ramachandran_type(residue, poly[res_index+1])))
     output_file.close()
 except Exception as e:
