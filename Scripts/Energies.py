@@ -19,10 +19,15 @@ class Energies():
         '''Returns readable atom id'''
         return '{}.{}'.format(self.residue_id(at.get_parent()), at.id)
 
+    '''
+        This function computes electrostatic and vdw energies of a given
+        residue against ALL atoms in the PDB structure.
+        Given a residue it returns electrostatic and vdw energies for all
+        residues but alanine and all electrostatic and vdw energies for
+        alanine residues only.
+    '''
     def calc_int_energies2(st, res):
-        '''Returns interaction energies (residue against other chains)
-            for all atoms and for Ala atoms
-        '''
+
         elec = 0.
         elec_ala = 0.
         vdw = 0.
@@ -43,8 +48,13 @@ class Energies():
                         vdw_ala += e
         return elec, elec_ala, vdw, vdw_ala
 
+    '''
+        This function computes solvation energy based on ASA.
+        Given a residue it returns both solvation for any residue but alanine
+        and solvation for alanine residues only.
+    '''
     def calc_solvation2(st, res):
-        '''Solvation energy based on ASA'''
+        ''''''
         solv = 0.
         solv_ala = 0.
         for at in res.get_atoms():
@@ -55,7 +65,6 @@ class Energies():
             if at.id in ala_atoms:
                 solv_ala += s
         return solv, solv_ala
-
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''

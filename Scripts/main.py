@@ -23,8 +23,8 @@ def man():
 
 def main(argv):
     # Setting up of the required parameters. 
-    INPUTDIR   = ''
-    DISTANCE    = 0.0
+    INPUTDIR = ''
+    DISTANCE = 0.0
     try:
         opts, args = getopt.getopt(argv,"hi:d:",["idir=","dist="])
     except getopt.GetoptError:
@@ -69,6 +69,7 @@ def main(argv):
     srf = NACCESS_atomic(st[0], naccess_binary=NACCESS_BINARY)
 
     io = PDBIO()
+
     st_chains = {}
     # Using BioIO trick (see tutorial) to select chains
 
@@ -78,7 +79,6 @@ def main(argv):
         st_chains[ch.id] = parser.get_structure('stA', 'tmp.pdb')
         srfA = NACCESS_atomic(st_chains[ch.id][0], naccess_binary=NACCESS_BINARY)
     os.remove('tmp.pdb')
-
 
     f = open(INPUTDIR+"energies.tsv", "w"); print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total",file=f)
 
@@ -90,6 +90,7 @@ def main(argv):
     surfaceRes      = surfaceInt.get_neighbors()
     surface_chain_A = []
 
+    # Storing into a list all residues of chain A within the surface interaction.
     for k,v in surfaceRes.items():
         surface_chain_A.append(int(k))
         #[surface_chain_E.add(res) for res in v]
@@ -107,12 +108,12 @@ def main(argv):
         #                 (elec,elec_ala,vdw,vdw_ala,solv,solv_ala)
         AAG_[res.id[1]] = (tmp[0],tmp[1],tmp[2],tmp[3],tmp2[0],tmp2[1])
 
-    int_elec = 0.
-    int_elec_ala = 0.
-    int_vdw = 0.
-    int_vdw_ala = 0.
-    int_solv = 0.
-    int_solv_ala = 0.
+    int_elec        = 0.
+    int_elec_ala    = 0.
+    int_vdw         = 0.
+    int_vdw_ala     = 0.
+    int_solv        = 0.
+    int_solv_ala    = 0.
 
     for res in AAG_:
         int_elec        += AAG_[res][0]
@@ -127,7 +128,6 @@ def main(argv):
 
     print("(#) Running Ala-Scanning:")
     print(f"(#) For each execution, one of the following residues: \n(#) {surface_chain_A} is treated as an Alanine.")
-
 
     for surf_res in tqdm(surface_chain_A):
         int_elec_ala = 0.

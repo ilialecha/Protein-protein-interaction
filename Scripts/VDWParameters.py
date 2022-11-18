@@ -82,8 +82,10 @@ def add_atom_parameters(st, res_lib, ff_params):
         For not recognized atoms, issues a warning and put default parameters
     '''
     for at in st.get_atoms():
+
         resname = at.get_parent().get_resname()
         params = res_lib.get_params(resname, at.id)
+        
         if not params:
             print("(!) WARNING: residue/atom pair not in library ("+atom_id(at) + ')')
             at.xtra['atom_type'] = at.element
