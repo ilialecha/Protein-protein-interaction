@@ -19,41 +19,43 @@ class Energies():
         '''Returns readable atom id'''
         return '{}.{}'.format(self.residue_id(at.get_parent()), at.id)
 
-    def calc_int_energies(st, res):
+    def calc_int_energies2(st, res):
         '''Returns interaction energies (residue against other chains)
             for all atoms and for Ala atoms
         '''
-        elec  = 0.
-        vdw   = 0.
-        solv  = 0.
-        for at1 in res.get_atoms():
-            for at2 in st.get_atoms():
-            # skip same chain atom pairs
-                if at2.get_parent().get_parent() != res.get_parent():
-                    r = at1 - at2
-                    elec += Energies.elec_int(at1, at2, r)
-                    vdw += Energies.vdw_int(at1, at2, r)          
-        return elec, vdw, Energies.calc_solvation(res)
-
-
-    def calc_int_energies_ala(st, res):
-        '''Returns interaction energies (residue against other chains)
-            for all atoms and for Ala atoms
-        '''
+        elec = 0.
         elec_ala = 0.
+        vdw = 0.
         vdw_ala = 0.
-        solv_ala = 0.
 
         for at1 in res.get_atoms():
             for at2 in st.get_atoms():
             # skip same chain atom pairs
                 if at2.get_parent().get_parent() != res.get_parent():
                     r = at1 - at2
-                    if at1.id in ala_atoms:
-                        elec_ala += Energies.elec_int(at1, at2, r) 
-                        vdw_ala  += Energies.vdw_int(at1, at2, r) 
-                        
-        return elec_ala, vdw_ala
+                    e = Energies.elec_int(at1, at2, r)
+                    elec += e
+                    if at1.id in ala_atoms: #GLY are included implicitly
+                        elec_ala += e
+                    e = Energies.vdw_int(at1, at2, r)
+                    vdw += e
+                    if at1.id in ala_atoms: #GLY are included implicitly
+                        vdw_ala += e
+        return elec, elec_ala, vdw, vdw_ala
+
+    def calc_solvation2(st, res):
+        '''Solvation energy based on ASA'''
+        solv = 0.
+        solv_ala = 0.
+        for at in res.get_atoms():
+            if 'EXP_NACCESS' not in at.xtra:
+                continue
+            s = float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf
+            solv += s
+            if at.id in ala_atoms:
+                solv_ala += s
+        return solv, solv_ala
+
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
@@ -68,22 +70,3 @@ class Energies():
         eps12 = math.sqrt(at1.xtra['vdw'].eps * at2.xtra['vdw'].eps)
         sig12_2 = at1.xtra['vdw'].sig * at2.xtra['vdw'].sig
         return 4 * eps12 * (sig12_2**6/r**12 - sig12_2**3/r**6)
-    
-    def calc_solvation(res):
-        '''Solvation energy based on ASA'''
-        '''Return solv.Energy of a given residue, have to execute this for all residues.'''
-        solv = 0.
-        for at in res.get_atoms():
-            if 'EXP_NACCESS' not in at.xtra: continue
-            else: solv += float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf
-        return solv
-    
-    def calc_solvation_ala(res):
-        '''Solvation energy based on ASA'''
-        '''Return solv.Energy of a given residue, have to execute this for all residues.'''
-        solv_ala = 0.
-        for at in res.get_atoms():
-            if 'EXP_NACCESS' not in at.xtra: continue
-            else:
-                if at.id in ala_atoms: solv_ala += float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf     
-        return solv_ala
