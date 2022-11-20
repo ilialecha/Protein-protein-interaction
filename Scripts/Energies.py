@@ -1,21 +1,24 @@
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Created By    : Ilia Lecha, Marc Romera and Marçal Vazquez.
 # Contributions : Jose Luis Gelpi, Irene Acero, Alberto Meseguer
 # Date          : 04/11/2022
 # version       = '1.0'
-# --------------------------------------------------------------------------- 
+# ---------------------------------------------------------------------------
 import math
+import tqdm
 from Bio.PDB import Selection
 
-#Possible Atom names that correspond to Ala atoms"
-ala_atoms = {'N', 'H', 'CA', 'HA', 'C', 'O', 'CB', 'HB', 'HB1', 'HB2', 'HB3', 'HA1', 'HA2', 'HA3'}
+# Possible Atom names that correspond to Ala atoms"
+ala_atoms = {'N', 'H', 'CA', 'HA', 'C', 'O', 'CB',
+             'HB', 'HB1', 'HB2', 'HB3', 'HA1', 'HA2', 'HA3'}
+
 
 class Energies():
-    def residue_id(self,res):
+    def residue_id(self, res):
         '''Returns readable residue id'''
         return '{} {}{}'.format(res.get_resname(), res.get_parent().id, res.id[1])
 
-    def atom_id(self,at):
+    def atom_id(self, at):
         '''Returns readable atom id'''
         return '{}.{}'.format(self.residue_id(at.get_parent()), at.id)
 
@@ -35,16 +38,16 @@ class Energies():
 
         for at1 in res.get_atoms():
             for at2 in st.get_atoms():
-            # skip same chain atom pairs
+                # skip same chain atom pairs
                 if at2.get_parent().get_parent() != res.get_parent():
                     r = at1 - at2
                     e = Energies.elec_int(at1, at2, r)
                     elec += e
-                    if at1.id in ala_atoms: #GLY are included implicitly
+                    if at1.id in ala_atoms:  # GLY are included implicitly
                         elec_ala += e
                     e = Energies.vdw_int(at1, at2, r)
                     vdw += e
-                    if at1.id in ala_atoms: #GLY are included implicitly
+                    if at1.id in ala_atoms:  # GLY are included implicitly
                         vdw_ala += e
         return elec, elec_ala, vdw, vdw_ala
 
@@ -54,17 +57,61 @@ class Energies():
         and solvation for alanine residues only.
     '''
     def calc_solvation2(st, res):
-        ''''''
         solv = 0.
         solv_ala = 0.
         for at in res.get_atoms():
             if 'EXP_NACCESS' not in at.xtra:
                 continue
-            s = float(at.xtra['EXP_NACCESS'])* at.xtra['vdw'].fsrf
+            s = float(at.xtra['EXP_NACCESS']) * at.xtra['vdw'].fsrf
             solv += s
             if at.id in ala_atoms:
                 solv_ala += s
         return solv, solv_ala
+
+    def calc_srf_energies2(st, res, chain_E, surf_E):
+
+        elec = 0.
+        elec_ala = 0.
+        vdw = 0.
+        vdw_ala = 0.
+
+        at_E = []
+
+        for res_E in surf_E:
+            at_E.append(Selection.unfold_entities(chain_E[res_E], ""))
+
+        for at1 in res.get_atoms():
+            for at2 in at_E:
+                if at2.get_parent().get_parent() != res.get_parent():
+                    r = at1 - at2
+                    e = Energies.elec_int(at1, at2, r)
+                    elec += e
+                    if at1.id in ala_atoms:  # GLY are included implicitly
+                        elec_ala += e
+                    e = Energies.vdw_int(at1, at2, r)
+                    vdw += e
+                    if at1.id in ala_atoms:  # GLY are included implicitly
+                        vdw_ala += e
+        solvs = Energies.calc_solvation2(None, res)
+        return elec, elec_ala, vdw, vdw_ala, solvs[0], solvs[1]
+
+    def calc_surface(chain_A, chain_E, surf_A, surf_E):
+        solv = 0.
+        solv_ala = 0.
+        elec = 0.
+        elec_ala = 0.
+        vdw = 0.
+        vdw_ala = 0.
+        for res in tqdm(surf_A):
+            tmp = Energies.calc_srf_energies2(
+                None, chain_A[res], chain_E, surf_E)
+            elec += tmp[0]
+            elec_ala += tmp[1]
+            vdw += tmp[2]
+            vdw_ala += tmp[3]
+            solv += tmp[4]
+            solv_ala += tmp[5]
+        return elec, elec_ala, vdw, vdw_ala, solv, solv_ala
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
