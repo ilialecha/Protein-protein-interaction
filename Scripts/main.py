@@ -143,6 +143,7 @@ def main(argv):
     print(
         f"(#) For each execution, one of the following residues: \n(#) {surface_chain_A} is treated as an Alanine.")
 
+    
     for surf_res in tqdm(surface_chain_A):
         int_elec_ala = 0.
         int_vdw_ala = 0.
