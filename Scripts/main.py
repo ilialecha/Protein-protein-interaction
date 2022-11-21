@@ -51,7 +51,7 @@ def main(argv):
     # Necessary for adding required parameters to atoms.
     NACCESS_BINARY = INPUTDIR+"soft/NACCESS/naccess"
 
-    print("(#) Adding Van der Waals parameters to PDB Structure.")
+    print("(#) Adding Van der Waals parameters to PDB Structure.\n")
 
     # loading residue library from files/aaLib.lib
     res_lib = ResiduesDataLib(INPUTDIR+'aaLib.lib')
@@ -89,7 +89,7 @@ def main(argv):
     f = open(INPUTDIR+"energies.tsv", "w")
     print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total", file=f)
 
-    print("(#) Identifying interaction surface residues.")
+    print("(#) Identifying interaction surface residues.\n")
 
     chain_A = st[0]["A"]  # Obtaining chain A from model 0 --> ACE2
     chain_E = st[0]["E"]  # Obtaining chain E from model 0 --> Spike
@@ -102,7 +102,10 @@ def main(argv):
         surface_chain_A.append(int(k))
         [surface_chain_E.append(res) for res in v]
 
-    print("(#) Computing all energies: Electrostatic, Van der waals and Solvation.")
+    print("(#) Computing energy of the interaction surface.\n")
+    print(Energies.calc_surface_energy(st, chain_A, surface_chain_A, chain_E, surface_chain_E))    
+
+    print("(#) Computing all energies: Electrostatic, Van der waals and Solvation.\n")
 
     # Solv_AE = Solv_A + Solv_E so we can omit some computation.
     solv_E = sum([Energies.calc_solvation2(st, res)[0]
@@ -131,19 +134,14 @@ def main(argv):
         int_solv += AAG_[res][4]
         int_solv_ala += AAG_[res][5]
 
-    print(f"(#) Writting into output file.")
+    print(f"(#) Writting into output file.\n")
     print("Normal;", "All", ";", int_elec, ";", int_vdw, ";", int_solv +
           solv_E, ";", int_elec+int_vdw+int_solv+solv_E, file=f)
 
-    # print(f"(#) Computing all energies of the interaction surface.")
-    #surface_energy = Energies.calc_surface(chain_A,chain_E,surface_chain_A,surface_chain_E)
-    # print(f"(#) Total energy of the interaction surface = {surface_energy[0]+surface_energy[2]+surface_energy[4]}")
-
-    print("(#) Running Ala-Scanning:")
+    print("(#) Running Ala-Scanning:\n")
     print(
-        f"(#) For each execution, one of the following residues: \n(#) {surface_chain_A} is treated as an Alanine.")
+        f"(#) For each execution, one of the following residues: \n(#) {surface_chain_A} is treated as an Alanine.\n")
 
-    
     for surf_res in tqdm(surface_chain_A):
         int_elec_ala = 0.
         int_vdw_ala = 0.
@@ -165,52 +163,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-
-'''
-Results before Ala-Scanning.
-Electrostatic -2.3990267908564156
-VDW -86.33619619342456
-Solv AE -517.432398000001
-'''
-'''
-Results after Ala-Scanning.
-Electrostatic -3.1085559070555813
-VDW -80.4134868382032
-Solvation -517.1682650000009
-'''
-
-'''
-for surf_A in surface_chain_A:
-    
-    int_elect_ala_A   = 0.
-    int_vdw_ala_A     = 0.
-    int_solv_ala      = 0.
-    solv_AE_ala       = 0.
-    for res in tqdm(chain_A):
-        if res.get_id()[1] == surf_A:
-            # Found residue to be treated as an Alanine.
-            tmp = Energies.calc_int_energies_ala(st, res)
-            int_elect_ala_A   += tmp[0]
-            int_vdw_ala_A     += tmp[1]
-            int_solv_ala      += Energies.calc_solvation_ala(res)
-        else:
-            tmp = Energies.calc_int_energies(st, res)
-            int_elect_ala_A   += tmp[0]
-            int_vdw_ala_A     += tmp[1]
-            int_solv_ala      += Energies.calc_solvation(res)'''
-
-
-'''for res in Selection.unfold_entities(st[0],"R"):
-    if res.get_id()[1] == surf_A:
-        # Found residue to be treated as an Alanine.
-        solv_AE_ala += Energies.calc_solvation_ala(res)
-    else:
-        solv_AE_ala += Energies.calc_solvation(res)'''
-
-'''print(f"\tModified res {chain_A[surf_A].get_resname()}")
-print(f"\tElectrostatic {int_elect_ala_A}")
-print(f"\tVDW {int_vdw_ala_A}")
-print(f"\tSolvation {int_solv_ala+solv_E}")
-print(f"(#) Writting into energies.tsv")
-print("AlaScan;",chain_A[surf_A].get_resname(),int_elect_ala_A,";",int_vdw_ala_A,";",int_solv_ala,";", int_vdw_ala_A+int_elect_ala_A+int_solv_ala,file=f)'''

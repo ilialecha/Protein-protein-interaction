@@ -21,6 +21,35 @@ class Energies():
     def atom_id(self, at):
         '''Returns readable atom id'''
         return '{}.{}'.format(self.residue_id(at.get_parent()), at.id)
+    
+    '''
+        This function computes electrostatic, vdw and solvation energies 
+        of the interaction surface.
+    '''
+    def calc_surface_energy(st, chain_A, srf_A, chain_E, srf_E):
+        elec = 0.
+        vdw = 0.
+        solv = 0
+        # For all resA € Residues in chain A
+        for resA in Selection.unfold_entities(chain_A, 'R'):
+            # Residue is on the interaction surface.
+            if resA.get_id()[1] in srf_A:
+                # For all resE € Residues in chain E
+                for resE in Selection.unfold_entities(chain_E, 'R'):
+                    # Residue is on the interaction surface.
+                    if resE.get_id()[1] in srf_E:
+                        # Compute energy between all atoms in resA and resE.
+                        solv += Energies.calc_solvation2(st, resA)[0]
+                        solv += Energies.calc_solvation2(st, resE)[0]
+
+                        for atmA in Selection.unfold_entities(chain_A[resA.get_id()[1]], 'A'):
+                            for atmE in Selection.unfold_entities(chain_E[resE.get_id()[1]], 'A'):
+                                r = atmA-atmE
+                                e = Energies.elec_int(atmA, atmE, r)
+                                elec += e
+                                e = Energies.vdw_int(atmA, atmE, r)
+                                vdw += e          
+        return elec, vdw, solv
 
     '''
         This function computes electrostatic and vdw energies of a given
@@ -30,7 +59,6 @@ class Energies():
         alanine residues only.
     '''
     def calc_int_energies2(st, res):
-
         elec = 0.
         elec_ala = 0.
         vdw = 0.
@@ -67,51 +95,6 @@ class Energies():
             if at.id in ala_atoms:
                 solv_ala += s
         return solv, solv_ala
-
-    def calc_srf_energies2(st, res, chain_E, surf_E):
-
-        elec = 0.
-        elec_ala = 0.
-        vdw = 0.
-        vdw_ala = 0.
-
-        at_E = []
-
-        for res_E in surf_E:
-            at_E.append(Selection.unfold_entities(chain_E[res_E], ""))
-
-        for at1 in res.get_atoms():
-            for at2 in at_E:
-                if at2.get_parent().get_parent() != res.get_parent():
-                    r = at1 - at2
-                    e = Energies.elec_int(at1, at2, r)
-                    elec += e
-                    if at1.id in ala_atoms:  # GLY are included implicitly
-                        elec_ala += e
-                    e = Energies.vdw_int(at1, at2, r)
-                    vdw += e
-                    if at1.id in ala_atoms:  # GLY are included implicitly
-                        vdw_ala += e
-        solvs = Energies.calc_solvation2(None, res)
-        return elec, elec_ala, vdw, vdw_ala, solvs[0], solvs[1]
-
-    def calc_surface(chain_A, chain_E, surf_A, surf_E):
-        solv = 0.
-        solv_ala = 0.
-        elec = 0.
-        elec_ala = 0.
-        vdw = 0.
-        vdw_ala = 0.
-        for res in tqdm(surf_A):
-            tmp = Energies.calc_srf_energies2(
-                None, chain_A[res], chain_E, surf_E)
-            elec += tmp[0]
-            elec_ala += tmp[1]
-            vdw += tmp[2]
-            vdw_ala += tmp[3]
-            solv += tmp[4]
-            solv_ala += tmp[5]
-        return elec, elec_ala, vdw, vdw_ala, solv, solv_ala
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
