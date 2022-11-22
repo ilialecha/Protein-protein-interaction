@@ -65,5 +65,5 @@ class SurfaceInteractions():
 
                     surface_neighbors[res.get_id()[1]] = set(
                         res.get_id()[1] for res in residue_list)
-
         return surface_neighbors
+

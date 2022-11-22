@@ -21,7 +21,8 @@ class Energies():
     def atom_id(self, at):
         '''Returns readable atom id'''
         return '{}.{}'.format(self.residue_id(at.get_parent()), at.id)
-    
+
+
     '''
         This function computes electrostatic, vdw and solvation energies 
         of the interaction surface.

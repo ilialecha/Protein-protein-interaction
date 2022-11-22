@@ -97,22 +97,27 @@ def main(argv):
     surfaceRes = surfaceInt.get_neighbors()
     surface_chain_A = []
     surface_chain_E = []
+
+
     # Storing into a list all residues of chain A within the surface interaction.
     for k, v in surfaceRes.items():
         surface_chain_A.append(int(k))
         [surface_chain_E.append(res) for res in v]
 
     print("(#) Computing energy of the interaction surface.\n")
-    print(Energies.calc_surface_energy(st, chain_A, surface_chain_A, chain_E, surface_chain_E))    
+    
+    srf_energy = Energies.calc_surface_energy(st, chain_A, surface_chain_A, chain_E, surface_chain_E)
+    print(f"(#) Int. Surf. energy = (Electrostatic) {srf_energy[0]} + (VDW) {srf_energy[1]} + (Solvation) {srf_energy[2]} = {srf_energy[0]+srf_energy[1]+srf_energy[2]}" ) 
 
     print("(#) Computing all energies: Electrostatic, Van der waals and Solvation.\n")
 
     # Solv_AE = Solv_A + Solv_E so we can omit some computation.
     solv_E = sum([Energies.calc_solvation2(st, res)[0]
                  for res in Selection.unfold_entities(st[0]['E'], 'R')])
+    
 
-    AAG_ = dict()
     # Computing energies for all atoms against all atoms. More information related in Energies.py
+    AAG_ = dict()
     for res in tqdm(chain_A):
         tmp = Energies.calc_int_energies2(st, res)
         tmp2 = Energies.calc_solvation2(st, res)
@@ -133,6 +138,8 @@ def main(argv):
         int_vdw_ala += AAG_[res][3]
         int_solv += AAG_[res][4]
         int_solv_ala += AAG_[res][5]
+    
+    print(f"(#) Total energy = (Electrostatic) {int_elec} + (VDW) {int_vdw} + (Solvation A) {int_solv} + (Solvation E) {solv_E}= {int_elec+int_vdw+int_solv+solv_E}" ) 
 
     print(f"(#) Writting into output file.\n")
     print("Normal;", "All", ";", int_elec, ";", int_vdw, ";", int_solv +
