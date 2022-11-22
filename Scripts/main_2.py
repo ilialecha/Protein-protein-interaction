@@ -13,6 +13,10 @@ from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.NACCESS import NACCESS_atomic
 from Bio.PDB.PDBIO import PDBIO
 from tqdm import tqdm
+from Bio.PDB.PDBParser import PDBParser
+from Bio.PDB.NACCESS import NACCESS_atomic
+from Bio.PDB.PDBIO import PDBIO, Select
+import energies as en
 
 
 def man():
@@ -69,7 +73,7 @@ def main(argv):
     st = parser.get_structure('st', pdb_path)
 
     # Adding VDW parameters to atoms.
-    add_atom_parameters(st, res_lib, ff_params)
+    en.add_atom_parameters(st, res_lib, ff_params)
 
     srf = NACCESS_atomic(st[0], naccess_binary=NACCESS_BINARY)
 
@@ -86,7 +90,65 @@ def main(argv):
             st_chains[ch.id][0], naccess_binary=NACCESS_BINARY)
     os.remove('tmp.pdb')
 
-    f = open(INPUTDIR+"energies.tsv", "w")
+    ## Initiatlize Energy aggregates
+    elec = {}
+    elec_ala = {}
+
+    vdw = {}
+    vdw_ala = {}
+
+    solvAB = {}
+    solvAB_ala = {}
+
+    solvA = {}
+    solvA_ala = {}
+
+    totalIntElec = 0.
+    totalIntVdw = 0.
+    totalSolv = 0.
+    totalSolvMon = {}
+    ## We get the chsin ids,not always they are A and B
+    chids = []
+    for ch in st[0]:
+        chids.append(ch.id)
+        totalSolvMon[ch.id] = 0
+    
+    total = 0.
+
+    interface = en.get_interface(st, DISTANCE)
+
+    for ch in st[0]:
+        for res in ch.get_residues():
+            if DISTANCE > 0 and res not in interface[ch.id]:
+                continue
+            elec[res], elec_ala[res], vdw[res], vdw_ala[res] = en.calc_int_energies(st[0], res)
+            solvAB[res], solvAB_ala[res] = en.calc_solvation(st[0], res)
+            solvA[res], solvA_ala[res] = en.calc_solvation(
+                st_chains[ch.id],
+                st_chains[ch.id][0][ch.id][res.id[1]]
+            )
+            totalIntElec += elec[res]
+            totalIntVdw += vdw[res]
+            totalSolv += solvAB[res]
+            totalSolvMon[ch.id] += solvA[res]
+            total += elec[res] + vdw[res] + solvAB[res] - solvA[res]
+            print(
+                'D#{:11} {:11.4f}{:11.4f}{:11.4f}{:11.4f} - {:11.4f}{:11.4f}{:11.4f}{:11.4f}'.format(
+                    en.residue_id(res),
+                    elec[res], vdw[res], solvAB[res], solvA[res],
+                    elec_ala[res], vdw_ala[res], solvAB_ala[res], solvA_ala[res]
+                )
+            )
+    
+    print("Interaction energy based in interface residues only")
+    print('{:20}: {:11.4f}'.format('Total Elec Int.', totalIntElec))
+    print('{:20}: {:11.4f}'.format('Total Vdw Int.', totalIntVdw))
+    print('{:20}: {:11.4f}'.format('Total Solv AB', totalSolv))
+    print('{:19}{}: {:11.4f}'.format('Total Solv ', chids[0], totalSolvMon[chids[0]]))
+    print('{:19}{}: {:11.4f}'.format('Total Solv ', chids[1], totalSolvMon[chids[1]]))
+    print('{:20}: {:11.4f}'.format('DGintAB-A-B', total))
+
+    '''f = open(INPUTDIR+"energies.tsv", "w")
     print("Type;Res;Electrostatic_AE;vdw_AE;solv_AE;total", file=f)
 
     print("(#) Identifying interaction surface residues.\n")
@@ -117,7 +179,7 @@ def main(argv):
     solv_A = sum([Energies.calc_solvation(st_chains[res.get_parent().id], res)[0]
                  for res in st[0]['A']])
     solv_AE = sum([Energies.calc_solvation(st, res)[0]
-                 for res in st[0].get_residues()])
+                 for res in st[0]])
     
     print("SOLVATION E = ",solv_E)
     print("SOLVATION A = ",solv_A)
@@ -228,7 +290,7 @@ def main(argv):
                 int_vdw_ala += AAG_[res][2]  # vdw
                 int_solv_ala += AAG_[res][4]  # solv
         print("AlaScan;", chain_A[surf_res].get_resname(), int_elec_ala, ";", int_vdw_ala,
-              ";", int_solv_ala+solv_E, ";", int_elec_ala+int_vdw_ala+int_solv_ala+solv_E, file=f)
+              ";", int_solv_ala+solv_E, ";", int_elec_ala+int_vdw_ala+int_solv_ala+solv_E, file=f)'''
 
     f.close()
 

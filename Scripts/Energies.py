@@ -12,7 +12,6 @@ from Bio.PDB import Selection
 ala_atoms = {'N', 'H', 'CA', 'HA', 'C', 'O', 'CB',
              'HB', 'HB1', 'HB2', 'HB3', 'HA1', 'HA2', 'HA3'}
 
-
 class Energies():
     def residue_id(self, res):
         '''Returns readable residue id'''
@@ -40,8 +39,8 @@ class Energies():
                     # Residue is on the interaction surface.
                     if resE.get_id()[1] in srf_E:
                         # Compute energy between all atoms in resA and resE.
-                        solv += Energies.calc_solvation2(st, resA)[0]
-                        solv += Energies.calc_solvation2(st, resE)[0]
+                        solv += Energies.calc_solvation(st, resA)[0]
+                        solv += Energies.calc_solvation(st, resE)[0]
 
                         for atmA in Selection.unfold_entities(chain_A[resA.get_id()[1]], 'A'):
                             for atmE in Selection.unfold_entities(chain_E[resE.get_id()[1]], 'A'):
@@ -59,7 +58,10 @@ class Energies():
         residues but alanine and all electrostatic and vdw energies for
         alanine residues only.
     '''
-    def calc_int_energies2(st, res):
+    def calc_int_energies(st, res):
+        '''Returns interaction energies (residue against other chains)
+            for all atoms and for Ala atoms
+        '''
         elec = 0.
         elec_ala = 0.
         vdw = 0.
@@ -67,25 +69,29 @@ class Energies():
 
         for at1 in res.get_atoms():
             for at2 in st.get_atoms():
-                # skip same chain atom pairs
+            # skip same chain atom pairs
                 if at2.get_parent().get_parent() != res.get_parent():
                     r = at1 - at2
                     e = Energies.elec_int(at1, at2, r)
                     elec += e
-                    if at1.id in ala_atoms:  # GLY are included implicitly
+                    if at1.id in ala_atoms: #GLY are included implicitly
                         elec_ala += e
                     e = Energies.vdw_int(at1, at2, r)
                     vdw += e
-                    if at1.id in ala_atoms:  # GLY are included implicitly
+                    if at1.id in ala_atoms: #GLY are included implicitly
                         vdw_ala += e
         return elec, elec_ala, vdw, vdw_ala
+
+
+
+
 
     '''
         This function computes solvation energy based on ASA.
         Given a residue it returns both solvation for any residue but alanine
         and solvation for alanine residues only.
     '''
-    def calc_solvation2(st, res):
+    def calc_solvation(st, res):
         solv = 0.
         solv_ala = 0.
         for at in res.get_atoms():
@@ -96,6 +102,27 @@ class Energies():
             if at.id in ala_atoms:
                 solv_ala += s
         return solv, solv_ala
+
+    def residue_energy(resA, resB):
+        elec = 0.
+        elec_ala = 0.
+        vdw = 0.
+        vdw_ala = 0.
+
+        for at1 in resA.get_atoms():
+            for at2 in resB.get_atoms():
+                # skip same chain atom pairs
+                #if at2.get_parent().get_parent() != resA.get_parent():
+                r = at1 - at2
+                e = Energies.elec_int(at1, at2, r)
+                elec += e
+                if at1.id in ala_atoms:  # GLY are included implicitly
+                    elec_ala += e
+                e = Energies.vdw_int(at1, at2, r)
+                vdw += e
+                if at1.id in ala_atoms:  # GLY are included implicitly
+                    vdw_ala += e
+        return elec, elec_ala, vdw, vdw_ala
 
     def MH_diel(r):
         '''Mehler-Solmajer dielectric'''
