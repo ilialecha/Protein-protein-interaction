@@ -16,7 +16,7 @@ from tqdm import tqdm
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.NACCESS import NACCESS_atomic
 from Bio.PDB.PDBIO import PDBIO, Select
-import energies as en
+import Scripts.Energies as en
 
 
 def man():

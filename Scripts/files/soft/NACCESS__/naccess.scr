@@ -1,5 +1,3 @@
-#!/bin/csh 
-set EXE_PATH = /home/ilia/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/soft/NACCESS
 #naccess_start
 #
 # The preceding line should be editted to point to
