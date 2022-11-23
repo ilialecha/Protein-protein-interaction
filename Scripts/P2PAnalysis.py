@@ -55,7 +55,7 @@ def interaction_energies(args, st, st_chains, distance):
 
     total = 0.
 
-    print("(#) Computing AAG of the interaction surface.")
+    if distance > 0. : print("(#) Computing AAG of the interaction surface.")
     for ch in st[0]:
         for res in tqdm(ch.get_residues()):
             # Checking if residue is located on the interaction surface.
@@ -79,6 +79,7 @@ def interaction_energies(args, st, st_chains, distance):
             totalSolvMon[ch.id] += solvA[res]
             total               += elec[res] + vdw[res] + solvAB[res] - solvA[res]
 
+            #Only if we are analyzing surface interactions we want to write to the output file.
             if distance > 0.:
                 print(
                     en.residue_id(res),
@@ -87,7 +88,9 @@ def interaction_energies(args, st, st_chains, distance):
                         sep="\t",file=f
                     )
             
-    print("(#) Summary of interaction surface energies: ")
+    if distance > 0. : print("(#) Summary of interaction surface energies: ")
+    else: print("(#) Summary of whole structure energies: ")
+
     print('{:20}: {:11.4f}'.format('Total Elec Int.', totalIntElec))
     print('{:20}: {:11.4f}'.format('Total Vdw Int.', totalIntVdw))
     print('{:20}: {:11.4f}'.format('Total Solv AB', totalSolv))
@@ -95,12 +98,13 @@ def interaction_energies(args, st, st_chains, distance):
     print('{:19}{}: {:11.4f}'.format('Total Solv ', chids[1], totalSolvMon[chids[1]]))
     print('{:20}: {:11.4f}'.format('DGintAB-A-B', total))
 
-
-    print(                   
-        "Total   ",
-        totalIntElec, totalIntVdw, totalSolv, totalSolvMon[chids[0]],
-        totalSolvMon[chids[1]], total, "-", "-",sep="\t",file=f
-    )
+    # Only if we are analyzing surface interactions we want to write to the output file.
+    if distance > 0.: 
+        print(                   
+            "Total   ",
+            totalIntElec, totalIntVdw, totalSolv, totalSolvMon[chids[0]],
+            totalSolvMon[chids[1]], total, "-", "-",sep="\t",file=f
+        )
 
     #------------------------------------------------------------------------------------
 
@@ -123,8 +127,7 @@ def interaction_energies(args, st, st_chains, distance):
                         - elec[res] + elec_ala[res] - vdw[res] + vdw_ala[res] - solvAB[res] +
                         solvAB_ala[res] - solvA[res] + solvA_ala[res],
                         sep="\t",file=f2)
-    f.close()
-    f2.close()
+    if distance > 0. : f.close() ; f2.close()
 
 def main():
 
@@ -217,13 +220,20 @@ def main():
         srfA = NACCESS_atomic(
             st_chains[ch.id][0], naccess_binary=NACCESS_BINARY)
     os.remove('tmp.pdb')
-    
+
+
+  #--------------------------------------------------------------------------------
+  # COMPUTING WHOLE STRUCTURE ENERGIES OF TWO PROTEINS.
+    interaction_energies(args, st, st_chains,-1)
+  #--------------------------------------------------------------------------------  
 
   #--------------------------------------------------------------------------------
   # COMPUTING INTERACTION SURFACE ENERGIES OF TWO PROTEINS GIVEN A CUTOFF DISTANCE
   # AND RUNNING AN ALA-SCANNING IN ORDER TO DETERMINE THE RELATIVE IMPORTANCE OF
   # EACH RESIDUE LOCATED ON THE INTERACTION SURFACE WHEN CHANGED BY AN ALANINE.
     interaction_energies(args, st, st_chains,args.cutoff_dist)
+  # YOU SHALL FIND 2 FILES IN THE SAME DIRECTORY THAN THE GIVEN LIBRARY AND VDW 
+  # PARAMETERS FILES CONTAINING THE RESULTS OF THE ANALYSYS FOR NEXT STEPS.   
   #--------------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -236,3 +246,20 @@ if __name__ == "__main__":
 --dist 4.0 
 /home/ilia/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/6m0j_fixed.pdb
 '''
+'''
+[20,21,23,24,25,26,27,28,29,30,31,32,33,34,35,37,38,39,41,42,43,45,48,49,75,76,78,79,80,81,82,83,84,324,325,326,327,329,330,351,352,353,354,355,356,357,386,387,388,393]
+
+select (resid 20 and chain A ) , (resid 21 and chain A ) , (resid 23 and chain A ) , (resid 24 and chain A ) , (resid 25 and chain A ) , (resid 26 and chain A ) , (resid 27 and chain A ) , (resid 28 and chain A ) , (resid 29 and chain A ) , (resid 30 and chain A ) , (resid 31 and chain A ) , (resid 32 and chain A ) , (resid 33 and chain A ) , (resid 34 and chain A ) 
+select (resid 35 and chain A ) , (resid 37 and chain A ) , (resid 38 and chain A ) , (resid 39 and chain A ) , (resid 41 and chain A ) , (resid 42 and chain A ) , (resid 43 and chain A ) , (resid 45 and chain A ) , (resid 48 and chain A ) , (resid 49 and chain A ) , (resid 75 and chain A ) , (resid 76 and chain A ) , (resid 78 and chain A ) , (resid 79 and chain A )
+select (resid 80 and chain A ) , (resid 81 and chain A ) , (resid 82 and chain A ) , (resid 83 and chain A ) , (resid 84 and chain A ) , (resid 324 and chain A ) , (resid 325 and chain A ) , (resid 326 and chain A ) , (resid 327 and chain A ) , (resid 329 and chain A ) , (resid 330 and chain A ) , (resid 351 and chain A ) , (resid 352 and chain A ) , (resid 353 and chain A ) 
+select (resid 354 and chain A ) , (resid 355 and chain A ) , (resid 356 and chain A ) , (resid 357 and chain A ) , (resid 386 and chain A ) , (resid 387 and chain A ) , (resid 388 and chain A ) , (resid 393 and chain A )
+select (resid 20 and chain A ) or (resid 21 and chain A ) or (resid 23 and chain A ) or (resid 24 and chain A ) or (resid 25 and chain A ) or (resid 26 and chain A ) or (resid 27 and chain A ) or (resid 28 and chain A ) or (resid 29 and chain A ) or (resid 30 and chain A ) or (resid 31 and chain A ) or (resid 32 and chain A ) or (resid 33 and chain A ) or (resid 34 and chain A ) 
+or (resid 35 and chain A ) or (resid 37 and chain A ) or (resid 38 and chain A ) or (resid 39 and chain A ) or (resid 41 and chain A ) or (resid 42 and chain A ) or (resid 43 and chain A ) or (resid 45 and chain A ) or (resid 48 and chain A ) or (resid 49 and chain A ) or (resid 75 and chain A ) or (resid 76 and chain A ) or (resid 78 and chain A ) or (resid 79 and chain A ) or 
+(resid 80 and chain A ) or (resid 81 and chain A ) or (resid 82 and chain A ) or (resid 83 and chain A ) or (resid 84 and chain A ) or (resid 324 and chain A ) or (resid 325 and chain A ) or (resid 326 and chain A ) or (resid 327 and chain A ) or (resid 329 and chain A ) or (resid 330 and chain A ) or (resid 351 and chain A ) or (resid 352 and chain A ) or (resid 353 and chain A ) 
+or (resid 354 and chain A ) or (resid 355 and chain A ) or (resid 356 and chain A ) or (resid 357 and chain A ) or (resid 386 and chain A ) or (resid 387 and chain A ) or (resid 388 and chain A ) or (resid 393 and chain A ) or (resid 403 and chain E ) or (resid 405 and chain E ) or (resid 406 and chain E ) or (resid 417 and chain E ) or (resid 421 and chain E ) or (resid 439 and chain E ) 
+or (resid 444 and chain E ) or (resid 445 and chain E ) or (resid 446 and chain E ) or (resid 447 and chain E ) or (resid 448 and chain E ) or (resid 449 and chain E ) or (resid 453 and chain E ) or (resid 454 and chain E ) or (resid 455 and chain E )
+403,405,406,417,421,439,444,445,446,447,448,449,453,454,455
+for res in [403,405,406,417,421,439,444,445,446,447,448,449,453,454,455]:
+    print(f"(resid {res} and chain E ) or ",end="")
+'''
+

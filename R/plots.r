@@ -5,6 +5,12 @@ setwd("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-pro
 data <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/ala_interaction_energies.tsv",
                                        header=TRUE, stringsAsFactors=TRUE)
 
+data2 <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/interaction_energies.tsv",
+                   header=TRUE, stringsAsFactors=TRUE)
+
+print(c(data2$RES_ID[data2$CHAIN_ID=="A"]),colapse=" or ")
+data2$RES_ID[data2$CHAIN_ID=="E"]
+
 m0j <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/6m0j_biopython.tsv", stringsAsFactors=TRUE)
 
 m0j_A <- m0j[m0j$CHAIN_ID == "A", ]
