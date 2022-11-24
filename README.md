@@ -17,6 +17,9 @@ Python script used to create a Ramachandran Plot of a given PDB structure.
 Python script used to detect which residues and/or atoms conform the 
 interaction surface between two protein chains of a given PDB structure.
 
+## VDWParameters.py
+Python script used to process aaLib and vdwprm and add the required extra parameters to all atoms within the structure.
+
 ## Energies.py
 Python script used to compute the interaction energy of two protein chains of 
 a given PDB structure.
