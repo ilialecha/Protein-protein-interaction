@@ -38,7 +38,7 @@ def calc_int_energies(st, res):
                 vdw += e
                 if at1.id in ala_atoms: #GLY are included implicitly
                     vdw_ala += e
-    return elec, elec_ala, vdw, vdw_ala
+    return elec, elec_ala, vdw, vdw_ala, r
 
 def MH_diel(r):
     '''Mehler-Solmajer dielectric'''

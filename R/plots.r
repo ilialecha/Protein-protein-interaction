@@ -8,7 +8,7 @@ data <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminar
 data2 <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/interaction_energies.tsv",
                    header=TRUE, stringsAsFactors=TRUE)
 
-print(c(data2$RES_ID[data2$CHAIN_ID=="A"]),colapse=" or ")
+typeof(data2$RES_ID[data2$CHAIN_ID=="A"])
 data2$RES_ID[data2$CHAIN_ID=="E"]
 
 m0j <- read.delim("~/Escritorio/Bioinformatics/1_Second_year/BioPhysics/Seminars/Protein-protein-interaction/Scripts/files/6m0j_biopython.tsv", stringsAsFactors=TRUE)
@@ -22,6 +22,15 @@ ggplot(m0j, aes(m0j$RES, fill = m0j$CHAIN_ID)) + geom_bar(position = 'identity',
 
 data_A <- data[data$CHAIN.ID == "A", ]
 data_E <- data[data$CHAIN.ID == "E", ]
+
+plot(data2$RES_NAM,data2$VDW.)
+
+
+plot(m0j$RES,m0j$PHI)
+
+plot(m0j$RES,m0j$PSI)
+
+
 
 
 library(gghighlight)

@@ -28,7 +28,7 @@ def interaction_energies(args, st, st_chains, distance):
         interface = SurfaceInteractions.get_interface(st, args.cutoff_dist)
         
         f = open(args.reslib_file[0:args.reslib_file.rfind("/")+1]+"interaction_energies.tsv", "w")
-        print("RES_ID","ELECT.", "VDW.", "SOLV_AB", "SOLV_A","ELECT.ALA", "VDW.ALA", "SOLV_AB.ALA", "SOLV_A.ALA",sep="\t",file=f)
+        print("RES_ID","ELECT.", "VDW.", "SOLV_AB", "SOLV_A","ELECT.ALA", "VDW.ALA", "SOLV_AB.ALA", "SOLV_A.ALA", "DISTANCE",sep="\t",file=f)
 
         f2 = open(args.reslib_file[0:args.reslib_file.rfind("/")+1]+"ala_interaction_energies.tsv", "w")
         print("RES.ID","CHAIN.ID","RES.Num","E+E.Ala","V+V.Ala","sAB+sAB.Ala","sA+sA.Ala","Total.AAG.Change",sep="\t",file=f2)
@@ -45,6 +45,7 @@ def interaction_energies(args, st, st_chains, distance):
     solvA = {} ; solvA_ala = {}
     totalIntElec = 0. ;totalIntVdw = 0.
     totalSolv = 0.  ;totalSolvMon = {}
+    distances = {}
 
     # We get the chain ids,not always they are A and B
     print(f"(#) Obtaining chain identifiers. ")
@@ -64,7 +65,7 @@ def interaction_energies(args, st, st_chains, distance):
 
             # Obtaining electrostatic and vdw energies for each residue. Also computing the supposed case
             # that the residue is an ALANINE.
-            elec[res], elec_ala[res], vdw[res], vdw_ala[res] = en.calc_int_energies(
+            elec[res], elec_ala[res], vdw[res], vdw_ala[res], distances[res] = en.calc_int_energies(
                 st[0], res)
             # Obtaining the total solvation energy.
             solvAB[res], solvAB_ala[res] = en.calc_solvation(st[0], res)
@@ -84,7 +85,7 @@ def interaction_energies(args, st, st_chains, distance):
                 print(
                     en.residue_id(res),
                         elec[res], vdw[res], solvAB[res], solvA[res],
-                        elec_ala[res], vdw_ala[res], solvAB_ala[res], solvA_ala[res],
+                        elec_ala[res], vdw_ala[res], solvAB_ala[res], solvA_ala[res], distances[res],
                         sep="\t",file=f
                     )
             
@@ -224,9 +225,9 @@ def main():
 
   #--------------------------------------------------------------------------------
   # COMPUTING WHOLE STRUCTURE ENERGIES OF TWO PROTEINS.
-    interaction_energies(args, st, st_chains,-1)
+  # interaction_energies(args, st, st_chains,-1)
   #--------------------------------------------------------------------------------  
-
+  # interaction_energies(args, st, st_chains,-1)
   #--------------------------------------------------------------------------------
   # COMPUTING INTERACTION SURFACE ENERGIES OF TWO PROTEINS GIVEN A CUTOFF DISTANCE
   # AND RUNNING AN ALA-SCANNING IN ORDER TO DETERMINE THE RELATIVE IMPORTANCE OF

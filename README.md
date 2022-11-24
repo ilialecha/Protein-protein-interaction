@@ -3,7 +3,7 @@
 This set of python scripts is mainly prepared to work with a PDB file with a single structure containing
 two main chains.It has been firstly developed to analyze the protein-to-protein interaction between SPIKE
 Protein and ACE2.
-For more information about the PDB structure used:
+For more information about the PDB structure being used in this project:
 https://www.rcsb.org/structure/6M0J
 
 
@@ -21,7 +21,7 @@ interaction surface between two protein chains of a given PDB structure.
 Python script used to compute the interaction energy of two protein chains of 
 a given PDB structure.
 
-## main.py
+## P2PAnalysis.py
 Python Script that imports an executes all required code of the python scripts above.
 
 
